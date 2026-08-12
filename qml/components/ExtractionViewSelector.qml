@@ -10,7 +10,7 @@ import QtQuick.Layouts
 import QtQuick.Effects
 import Decenza
 
-// Dialog for selecting espresso extraction view mode: Shot Chart or Cup Fill.
+// Dialog for selecting the espresso extraction view mode.
 DecenzaDialog {
     id: selectorDialog
 
@@ -69,6 +69,14 @@ DecenzaDialog {
                     labelFallback: "Cup Fill"
                     descKey: "espresso.viewSelector.cupFillDesc"
                     descFallback: "Animated cup filling with extraction progress"
+                }
+                ListElement {
+                    mode: "minimalCup"
+                    icon: "qrc:/icons/espresso.svg"
+                    labelKey: "espresso.viewSelector.minimalCup"
+                    labelFallback: "Minimal Cup"
+                    descKey: "espresso.viewSelector.minimalCupDesc"
+                    descFallback: "Calm ceramic cup driven by weight and flow"
                 }
             }
 

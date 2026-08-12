@@ -1423,6 +1423,7 @@ set(QML_FILES
     qml/components/PhaseSummaryPanel.qml
     qml/components/ShotAnalysisDialog.qml
     qml/components/CupFillView.qml
+    qml/components/MinimalCupFillView.qml
     qml/components/PhaseTimelineView.qml
     qml/components/ExtractionViewSelector.qml
     qml/components/StyledSwitch.qml

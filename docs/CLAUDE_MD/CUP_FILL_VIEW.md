@@ -2,6 +2,12 @@
 
 The espresso extraction cup visualization (`qml/components/CupFillView.qml`) uses a hybrid image+procedural approach.
 
+`qml/components/MinimalCupFillView.qml` is an optional, asset-free alternative. It draws a
+matte ceramic cup with Qt Quick Shapes, maps weight to a clean sectional fill height, maps flow
+to the stream width, and keeps both material colours fixed. It mirrors `CupFillView`'s pre-flow
+empty state and post-shot held-weight behaviour, but deliberately omits crema, steam, ripples,
+tracking colours, and completion effects.
+
 ## Layer Stack
 
 ```

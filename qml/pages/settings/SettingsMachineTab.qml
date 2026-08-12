@@ -1040,6 +1040,7 @@ KeyboardAwareContainer {
                             model: ListModel {
                                 ListElement { mode: "chart"; icon: "qrc:/icons/Graph.svg"; labelKey: "settings.preferences.viewChart"; labelFallback: "Shot Chart" }
                                 ListElement { mode: "cupFill"; icon: "qrc:/icons/espresso.svg"; labelKey: "settings.preferences.viewCupFill"; labelFallback: "Cup Fill" }
+                                ListElement { mode: "minimalCup"; icon: "qrc:/icons/espresso.svg"; labelKey: "settings.preferences.viewMinimalCup"; labelFallback: "Minimal Cup" }
                             }
 
                             delegate: Rectangle {
@@ -1962,4 +1963,3 @@ KeyboardAwareContainer {
     }
 
 }
-

@@ -1,4 +1,4 @@
-// The two extraction-view Components read this file's `espressoPage` id; Bound makes it
+// The three extraction-view Components read this file's `espressoPage` id; Bound makes them
 // statically resolvable. Neither takes an injected model role, so nothing here needs a
 // `required property`. (The `layer.effect` blocks read only `Theme`, a singleton, so
 // they need nothing from the pragma.)
@@ -323,6 +323,15 @@ T.Page {
         var v = Settings.value("espresso/showStats", true)
         return v === true || v === "true"
     }
+
+    function extractionMetricColor(baseColor) {
+        if (extractionViewMode !== "minimalCup")
+            return baseColor
+        return Qt.rgba(baseColor.r * 0.8 + Theme.textSecondaryColor.r * 0.2,
+                       baseColor.g * 0.8 + Theme.textSecondaryColor.g * 0.2,
+                       baseColor.b * 0.8 + Theme.textSecondaryColor.b * 0.2,
+                       baseColor.a)
+    }
     // Shared with Post-Shot Review and Shot Detail pages via the same setting.
 
     // Sync from Settings changes made elsewhere (e.g. SettingsMachineTab)
@@ -342,7 +351,7 @@ T.Page {
         }
     }
 
-    // Extraction view switcher (Loader swaps between ShotGraph and CupFill)
+    // Extraction view switcher (Loader swaps between graph, rich cup, and minimal cup)
     Loader {
         id: extractionViewLoader
         anchors.top: parent.top
@@ -353,6 +362,7 @@ T.Page {
         anchors.topMargin: Theme.scaled(50)
         sourceComponent: {
             switch (espressoPage.extractionViewMode) {
+                case "minimalCup": return minimalCupComponent
                 case "cupFill": return cupFillComponent
                 case "chart": return shotGraphComponent
                 default:
@@ -377,6 +387,16 @@ T.Page {
             goalPressure: MainController.filteredGoalPressure
             goalFlow: MainController.filteredGoalFlow
             shotTime: MachineState.shotTime
+            phase: MachineState.phase
+        }
+    }
+
+    Component {
+        id: minimalCupComponent
+        MinimalCupFillView {
+            currentWeight: espressoPage.currentWeight
+            targetWeight: MachineState.targetWeight
+            currentFlow: DE1Device.flow
             phase: MachineState.phase
         }
     }
@@ -460,6 +480,8 @@ T.Page {
         height: Theme.scaled(36)
         radius: Theme.scaled(18)
         color: {
+            if (espressoPage.extractionViewMode === "minimalCup")
+                return Theme.surfaceColor
             switch (MachineState.phase) {
                 case MachineState.Phase.EspressoPreheating: return Theme.accentColor
                 case MachineState.Phase.Preinfusion: return Theme.pressureColor
@@ -468,7 +490,11 @@ T.Page {
                 default: return "transparent"
             }
         }
-        opacity: 0.85
+        border.color: espressoPage.extractionViewMode === "minimalCup"
+            ? Theme.borderColor : "transparent"
+        border.width: espressoPage.extractionViewMode === "minimalCup"
+            ? Theme.scaled(1) : 0
+        opacity: espressoPage.extractionViewMode === "minimalCup" ? 1 : 0.85
         visible: espressoPage.showPhaseIndicator &&
                  (MachineState.phase === MachineState.Phase.EspressoPreheating ||
                   MachineState.phase === MachineState.Phase.Preinfusion ||
@@ -489,7 +515,9 @@ T.Page {
                 width: Theme.scaled(8)
                 height: Theme.scaled(8)
                 radius: Theme.scaled(4)
-                color: Theme.textColor
+                color: espressoPage.extractionViewMode === "minimalCup"
+                    ? espressoPage.extractionMetricColor(Theme.primaryColor)
+                    : Theme.textColor
                 anchors.verticalCenter: parent.verticalCenter
                 opacity: 1.0
 
@@ -782,7 +810,7 @@ T.Page {
 
                 Text {
                     text: DE1Device.pressure.toFixed(1)
-                    color: Theme.pressureColor
+                    color: espressoPage.extractionMetricColor(Theme.pressureColor)
                     font.pixelSize: Theme.scaled(28)
                     font.weight: Font.Medium
                     Accessible.ignored: true
@@ -825,7 +853,7 @@ T.Page {
 
                 Text {
                     text: DE1Device.flow.toFixed(1)
-                    color: Theme.flowColor
+                    color: espressoPage.extractionMetricColor(Theme.flowColor)
                     font.pixelSize: Theme.scaled(28)
                     font.weight: Font.Medium
                     Accessible.ignored: true
@@ -862,7 +890,7 @@ T.Page {
 
                 Text {
                     text: Theme.cToDisplay(DE1Device.temperature).toFixed(1)
-                    color: Theme.temperatureColor
+                    color: espressoPage.extractionMetricColor(Theme.temperatureColor)
                     font.pixelSize: Theme.scaled(28)
                     font.weight: Font.Medium
                     Accessible.ignored: true
@@ -886,7 +914,7 @@ T.Page {
 
                 Text {
                     text: MachineState.smoothedScaleFlowRate.toFixed(1)
-                    color: Theme.weightFlowColor
+                    color: espressoPage.extractionMetricColor(Theme.weightFlowColor)
                     font.pixelSize: Theme.scaled(28)
                     font.weight: Font.Medium
                     Accessible.ignored: true
@@ -922,7 +950,8 @@ T.Page {
                 readonly property double currentValue: isVolumeMode ? MachineState.pourVolume : espressoPage.currentWeight
                 readonly property double targetValue: isVolumeMode ? MachineState.targetVolume : MachineState.targetWeight
                 readonly property string unit: isVolumeMode ? "ml" : "g"
-                readonly property color displayColor: isVolumeMode ? Theme.flowColor : Theme.weightColor
+                readonly property color displayColor: espressoPage.extractionMetricColor(
+                    isVolumeMode ? Theme.flowColor : Theme.weightColor)
 
                 Accessible.role: Accessible.StaticText
                 Accessible.name: {
