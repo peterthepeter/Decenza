@@ -62,6 +62,12 @@ android {
     }
 
     defaultConfig {
+        // Fork/preview builds can use a separate application ID so they can be
+        // installed alongside the official, differently signed Decenza app.
+        applicationId = System.getenv("DECENZA_ANDROID_APPLICATION_ID") ?: androidPackageName
+        manifestPlaceholders = [
+            decenzaAppLabel: System.getenv("DECENZA_ANDROID_APP_LABEL") ?: "Decenza"
+        ]
         resConfig "en"
         minSdkVersion qtMinSdkVersion
         targetSdkVersion qtTargetSdkVersion

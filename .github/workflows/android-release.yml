@@ -175,9 +175,32 @@ jobs:
       - name: Decode Android keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD_SECRET: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > $RUNNER_TEMP/keystore.jks
-          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/keystore.jks" >> $GITHUB_ENV
+          if [ "${{ github.repository }}" != "Kulitorum/Decenza" ]; then
+            echo "DECENZA_ANDROID_APPLICATION_ID=io.github.peterthepeter.decenza_de1_preview" >> "$GITHUB_ENV"
+            echo "DECENZA_ANDROID_APP_LABEL=Decenza Preview" >> "$GITHUB_ENV"
+          fi
+
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/keystore.jks"
+            SIGNING_PASSWORD="$ANDROID_KEYSTORE_PASSWORD_SECRET"
+          else
+            # Forks do not have access to the upstream release key. Generate an
+            # ephemeral preview key and use a distinct application ID so the APK
+            # installs alongside the official app without touching its data.
+            SIGNING_PASSWORD="android"
+            keytool -genkeypair -noprompt \
+              -keystore "$RUNNER_TEMP/keystore.jks" \
+              -storepass "$SIGNING_PASSWORD" \
+              -keypass "$SIGNING_PASSWORD" \
+              -alias "de1-key" \
+              -dname "CN=Decenza Preview, OU=Development, O=Decenza, C=DE" \
+              -keyalg RSA -keysize 2048 -validity 10000
+          fi
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/keystore.jks" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=$SIGNING_PASSWORD" >> "$GITHUB_ENV"
+          echo "QT_ANDROID_KEYSTORE_STORE_PASS=$SIGNING_PASSWORD" >> "$GITHUB_ENV"
 
       # Quoted: an unquoted '#' after whitespace starts a YAML comment, which
       # silently truncated this step name in the Actions UI.
@@ -256,9 +279,6 @@ jobs:
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: Build
-        env:
-          QT_ANDROID_KEYSTORE_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEYSTORE_PATH: ${{ env.ANDROID_KEYSTORE_PATH }}
         run: |
           cd build
           cmake --build . --config Release --parallel $(nproc)
@@ -292,8 +312,6 @@ jobs:
 
       - name: Sign APK if unsigned
         id: signed_apk
-        env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           APK="${{ steps.apk.outputs.apk_path }}"
           VERSION=${{ steps.version.outputs.version }}
