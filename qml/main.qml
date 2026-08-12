@@ -926,6 +926,8 @@ T.ApplicationWindow {
         var configVal = Settings.value("ui/configurePageScale", false)
         // Handle both boolean and string values from QSettings
         Theme.configurePageScaleEnabled = (configVal === true || configVal === "true")
+        Theme.defaultPageScaleMultiplier = Math.max(0.3, Math.min(2.0,
+            parseFloat(Settings.value("ui/defaultPageScale", 1.0)) || 1.0))
 
         updateScale()
 
@@ -1425,9 +1427,11 @@ T.ApplicationWindow {
         Theme.currentPageObjectName = pageName
         AppShell.currentPage = pageStack.currentItem
         if (pageName) {
-            Theme.pageScaleMultiplier = parseFloat(Settings.value("pageScale/" + pageName, 1.0)) || 1.0
+            Theme.pageScaleMultiplier = parseFloat(Settings.value(
+                "pageScale/" + pageName, Theme.defaultPageScaleMultiplier))
+                || Theme.defaultPageScaleMultiplier
         } else {
-            Theme.pageScaleMultiplier = 1.0
+            Theme.pageScaleMultiplier = Theme.defaultPageScaleMultiplier
         }
     }
 

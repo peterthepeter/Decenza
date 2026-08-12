@@ -20,6 +20,11 @@ QtObject {
     // Per-page scale multiplier (set by main.qml based on current page)
     property real pageScaleMultiplier: 1.0
 
+    // Fallback used by pages that do not have an explicit per-page override.
+    // Kept separate from scaleMultiplier so changing it does not alter overlays
+    // and other UI that intentionally uses scaledBase().
+    property real defaultPageScaleMultiplier: 1.0
+
     // Per-page scale configuration mode (set by main.qml)
     property bool configurePageScaleEnabled: false
     property string currentPageObjectName: ""

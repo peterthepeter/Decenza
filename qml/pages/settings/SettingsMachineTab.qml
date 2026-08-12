@@ -25,6 +25,7 @@ KeyboardAwareContainer {
     // Local properties
     property int postShotReviewTimeout: Settings.value("postShotReviewTimeout", 31)
     property bool configurePageScaleEnabled: Theme.configurePageScaleEnabled
+    property real defaultPageScale: Theme.defaultPageScaleMultiplier
 
     Flickable {
         id: contentFlickable
@@ -1202,11 +1203,42 @@ KeyboardAwareContainer {
 
                         Text {
                             Layout.fillWidth: true
-                            text: TranslationManager.translate("settings.machine.screenZoomDesc", "Make text and controls larger or smaller on each screen")
+                            text: TranslationManager.translate("settings.machine.screenZoomDesc", "Set the default size for every screen, with optional per-screen overrides")
                             color: Theme.textSecondaryColor
                             font.family: Theme.bodyFont.family
                             font.pixelSize: Theme.scaled(12)
                             wrapMode: Text.WordWrap
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.scaled(10)
+
+                            Text {
+                                text: TranslationManager.translate("settings.machine.defaultZoom", "Default zoom")
+                                color: Theme.textColor
+                                font.family: Theme.bodyFont.family
+                                font.pixelSize: Theme.scaled(14)
+                            }
+
+                            ValueInput {
+                                Layout.fillWidth: true
+                                from: 0.3
+                                to: 2.0
+                                stepSize: 0.05
+                                decimals: 2
+                                suffix: "x"
+                                value: machineTab.defaultPageScale
+                                accessibleName: TranslationManager.translate("settings.machine.defaultZoom", "Default zoom")
+                                onValueModified: function(newValue) {
+                                    machineTab.defaultPageScale = newValue
+                                    Theme.defaultPageScaleMultiplier = newValue
+                                    Settings.setValue("ui/defaultPageScale", newValue)
+                                    var pageName = Theme.currentPageObjectName
+                                    if (pageName && Settings.value("pageScale/" + pageName, "") === "")
+                                        Theme.pageScaleMultiplier = newValue
+                                }
+                            }
                         }
 
                         RowLayout {
